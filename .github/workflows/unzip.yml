@@ -1,0 +1,29 @@
+name: Unzip project
+on:
+  push:
+    paths:
+      - '**.zip'
+  workflow_dispatch:
+permissions:
+  contents: write
+jobs:
+  unzip:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: Unzip and flatten
+        run: |
+          set -e
+          ZIP=$(ls *.zip | head -n 1)
+          unzip -o "$ZIP" -d extracted
+          cp -a extracted/HuaweiRouterMaster/. .
+          rm -rf extracted "$ZIP"
+      - name: Commit extracted files
+        run: |
+          git config user.name "github-actions"
+          git config user.email "github-actions@github.com"
+          git add -A
+          git commit -m "Extract HuaweiRouterMaster project" || echo "nothing to commit"
+          git push
